@@ -27,7 +27,7 @@ pub struct Block {
 
 impl IBlock for Block {
   fn mine(&mut self) {
-    let prefix = String::from_utf8(vec![b'0'; DIFFICULTY.into()]).unwrap();
+    let prefix = self.get_prefix();
 
     loop {
       self.calculate_hash();
@@ -40,7 +40,17 @@ impl IBlock for Block {
   }
 
   fn validate(&self) -> bool {
-    // ToDo validation logic
+    let hash = self.compute_hash();
+
+    if hash != self.hash {
+      return false;
+    }
+
+    let prefix = self.get_prefix();
+    if !self.hash.starts_with(&prefix) {
+      return false;
+    }
+
     true
   }
 
@@ -76,9 +86,7 @@ impl IBlock for Block {
   }
 
   fn calculate_hash(&mut self) {
-    let input = self.to_string();
-    let hash = digest_bytes(&input.as_bytes());
-    self.hash = hash;
+    self.hash = self.compute_hash();
   }
 }
 
@@ -92,6 +100,15 @@ impl Block {
       hash: "".to_string(),
       previous_hash: previous_hash,
     }
+  }
+
+  fn compute_hash(&self) -> String {
+    let input = self.to_string();
+    return digest_bytes(&input.as_bytes());
+  }
+
+  fn get_prefix(&self) -> String {
+    String::from_utf8(vec![b'0'; DIFFICULTY.into()]).unwrap()
   }
 }
 
@@ -147,5 +164,43 @@ mod tests {
       block.get_hash(),
       "00007b479bb492680dd1ab6aac50631c9d34c925f61841b1368b7946ef2ff247".to_string()
     );
+  }
+
+  #[test]
+  fn test_validate_valid_block() {
+    let mut block = Block::new(
+      2,
+      false,
+      "This is a block to be validated".to_string(),
+      "edcb707a5684c389230adbe4076e98cdd6cb488f028d98ede479802c33be860d".to_string(),
+    );
+    block.mine();
+    let valid = block.validate();
+    assert!(valid);
+  }
+
+  #[test]
+  fn test_validate_invalid_block_hash_mismatch() {
+    let block = Block::new(
+      2,
+      false,
+      "This block does not match hash so is not valid".to_string(),
+      "edcb707a5684c389230adbe4076e98cdd6cb488f028d98ede479802c33be860d".to_string(),
+    );
+    let valid = block.validate();
+    assert!(!valid);
+  }
+
+  #[test]
+  fn test_validate_invalid_block_does_not_meet_consensus() {
+    let mut block = Block::new(
+      2,
+      false,
+      "This block does not meet consensus so is not valid".to_string(),
+      "edcb707a5684c389230adbe4076e98cdd6cb488f028d98ede479802c33be860d".to_string(),
+    );
+    block.calculate_hash();
+    let valid = block.validate();
+    assert!(!valid);
   }
 }
