@@ -1,5 +1,6 @@
 mod block;
+mod chain;
 
 fn main() {
-    println!("Hello, world!");
+  println!("Hello, world!");
 }
