@@ -1,3 +1,4 @@
+use serde::Serialize;
 use sha256::digest_bytes;
 
 pub const DIFFICULTY: u8 = 4;
@@ -15,7 +16,7 @@ pub trait IBlock {
   fn calculate_hash(&mut self);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Block {
   id: u64,
   genesis: bool,
