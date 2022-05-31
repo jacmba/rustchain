@@ -1,6 +1,5 @@
 use crate::block::*;
 use serde::Serialize;
-use std::ops::{Deref, DerefMut};
 
 pub trait IChain {
   fn get_chain(&self) -> &Vec<Block>;
@@ -14,8 +13,6 @@ pub trait IChain {
 pub struct Chain {
   blocks: Vec<Block>,
 }
-
-impl Deref for Chain {}
 
 impl IChain for Chain {
   fn get_chain(&self) -> &Vec<Block> {
